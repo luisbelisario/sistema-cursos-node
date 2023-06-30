@@ -15,7 +15,7 @@ nome:string,ativo:boolean,email:string,role:string
 Após isso o próprio sequelize criará os arquivos necessários nas pastas
 models e migrations e a coluna id será gerada automaticamente como uma PK
 
-O próximo passo será fazer as migrations
+## O próximo passo será fazer as migrations
 
 Para fazer as migrations usamos o seguinte comando:
 
@@ -30,7 +30,9 @@ Using environment "development".
 == 20230622111250-create-pessoas: migrating =======
 == 20230622111250-create-pessoas: migrated (0.032s)
 
-Opcionalmente podemos gerar seeds no banco para popular. Para isso, 
+## Opcionalmente podemos gerar seeds no banco para popular. 
+
+Para isso, 
 inicialmente deve criar um arquivo seeder com o seguinte comando:
 
 npx sequelize-cli seed:generate --name demo-pessoas
@@ -44,7 +46,7 @@ as tabelas:
 
 npx sequelize-cli db:seed:all
 
-Para desfazer migrações usamos o seguinte comando:
+## Para desfazer migrações usamos o seguinte comando:
 
 npx sequelize-cli db:migrate:undo
 
@@ -57,7 +59,7 @@ db:migrate:undo --name [data-hora]-create-[nome-da-tabela].js
 Porém, nesse último caso, só irá funcionar se 
 não tiver nenhuma outra tabela relacionada a ela!
 
-Podemos também desfazer seeds com os comandos:
+## Podemos também desfazer seeds com os comandos:
 
 npx sequelize db:seed:undo
 
@@ -71,7 +73,7 @@ npx sequelize-cli db:seed:undo:all
 
 Para desfazer todos os seeds feitos.
 
-Importante:
+## Importante:
 
 Ao contrário das migrações, não existe nenhum recurso de “versionamento” 
 de seeds, só é possível incluir no banco e desfazer a operação 
@@ -86,4 +88,75 @@ reutilizado. Se você estiver migrando/seedando tabelas relacionadas,
 é sempre bom conferir os IDs de todas, do contrário o Sequelize vai 
 lançar um erro de relação.
 
+## Criando novas tabelas e relacionamentos
 
+Como regra para criação de novas tabelas do modelo, deve-se criar,
+primeiramente, tabelas que não possuam chaves estrangeiras (FK).
+
+Vamos inicialmente criar a tabela Niveis:
+
+npx sequelize-cli model:create --name Niveis --attributes 
+descr_nivel:string
+
+Como a tabela Matriculas recebe informacoes da tabela Turmas,
+vamos criar primeiro a tabela Turmas:
+
+npx sequelize-cli model:create --name Turmas --attributes 
+data_inicio:dateonly
+
+Obs.: nesse primeiro momento não precisamos criar chaves 
+estrangeiras
+
+Por fim vamos criar a tabela Matriculas:
+
+npx sequelize-cli model:create --name Matriculas --attributes
+status:string
+
+## Fazendo associações
+
+Para criar associações devemos editar os arquivos models
+correspondentes às entidades associadas. Exemplo: Pessoas
+está associado de um para muitos com Turmas e Matrículas.
+Assim, dentro do método associate do model Pessoas, adicionamos
+as seguintes linhas.
+
+Pessoas.hasMany(models.Turmas, {
+    foreignKey: 'mestre_id'
+});
+Pessoas.hasMany(models.Matriculas, {
+    foreignKey: 'estudante_id'
+});
+
+Essas associações permitirão buscar quais turmas e quais Matriculas
+aquela Pessoa possui/está associada.
+
+Após fazer todas as associações podemos adicionar as associações
+inversas. Exemplo, Turmas está associada com Pessoas, então
+dentro do model Turmas podemos adicionar a seguinte instrução
+
+Turmas.belongsTo(models.Pessoas, {
+    foreignKey: 'mestre_id'
+});
+
+O uso do belongsTo permitirá a busca inversa daquelas entidades.
+Ou seja, permitirá buscar qual Pessoa pertence a uma determinada Turma.
+
+Feitas as associações, o passo final é adicionar as colunas de FK
+nos arquivos de migração dos modelos correspondentes.
+
+Exemplos:
+
+mestre_id: {
+    allowNull: false,
+    type: Sequelize.INTEGER,
+    references: { model: 'Pessoas', key: 'id'}
+},
+nivel_id: {
+    allowNull: false,
+    type: Sequelize.INTEGER,
+    references: { model: 'Niveis', key: 'id'}
+}
+
+Após essas instruções o passo seguinte é criar as migrações:
+
+npx sequelize-cli db:migrate 
