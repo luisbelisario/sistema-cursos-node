@@ -62,6 +62,70 @@ class PessoaController {
             res.status(500).json(error.message);
         }
     }
+
+    static async findUmaMatricula(req, res) {
+        const { estudanteId, matriculaId } = req.params;
+        // tenho que o id colocar entre chaves para não dar erro
+        try {
+            const matricula = await database.Matriculas.findOne( {
+                where: {
+                    id: Number(matriculaId),
+                    estudante_id: Number(estudanteId)
+                }
+            } )
+            return res.status(200).json(matricula);
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
+
+    static async createMatricula(req, res) {
+        const { estudanteId } = req.params;
+        const novaMatricula = { ...req.body, estudante_id: Number(estudanteId) }
+        try {
+            const matriculaCriada = await database.Matriculas.create(novaMatricula);
+            return res.status(200).json(matriculaCriada);
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
+
+    // /pessoas/estudanteId/matricula/matriculaId
+    static async updateMatricula(req, res) {
+        const { estudanteId, matriculaId } = req.params;
+        const novasInfos = req.body;
+        try {
+            await database.Matriculas.update(novasInfos, {
+                where: {
+                    id: Number(matriculaId),
+                    estudante_id: Number(estudanteId)
+                }
+            });
+            const matriculaAtualizada = await database.Matriculas.findOne( {
+                where: {
+                    id: Number(matriculaId)
+                }
+            } )
+            return res.status(200).json(matriculaAtualizada);
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
+
+    static async deleteMatricula(req, res) {
+        const { estudanteId, matriculaId } = req.params;
+        try {
+            await database.Matriculas.destroy({ where: {id: Number(matriculaId), estudante_id: Number(estudanteId)} });
+            const pessoa = await database.Pessoas.findOne( {
+                where: {
+                    id: Number(estudanteId)
+                }
+            } )
+            return res.status(200).json({mensagem : `Matricula ${matriculaId} do estudante ${pessoa.nome} deletada`});
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
 }
 
 module.exports = PessoaController;
