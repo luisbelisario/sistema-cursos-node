@@ -63,6 +63,16 @@ class PessoaController {
         }
     }
 
+    static async restorePessoa(req, res) {
+        const { id } = req.params;
+        try {
+            await database.Pessoas.restore({ where: {id: Number(id)} })
+            return res.status(200).json({mensagem : `Id: ${id} restaurado`})
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
+
     static async findUmaMatricula(req, res) {
         const { estudanteId, matriculaId } = req.params;
         // tenho que o id colocar entre chaves para não dar erro
