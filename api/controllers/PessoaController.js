@@ -145,6 +145,17 @@ class PessoaController {
             res.status(500).json(error.message);
         }
     }
+
+    static async findMatriculasByPerson(req, res) {
+        const { estudanteId } = req.params;
+        try {
+            const pessoa = await database.Pessoas.findOne({ where: {id: Number(estudanteId)} });
+            const matriculas = await pessoa.getMatriculasConfirmadas();
+            return res.status(200).json(matriculas);
+        } catch (error) {
+            res.status(500).json(error.message);
+        }
+    }
 }
 
 module.exports = PessoaController;
