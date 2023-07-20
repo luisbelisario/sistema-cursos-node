@@ -3,7 +3,7 @@ const PessoaController = require('../controllers/PessoaController');
 
 const router = Router();
 
-router.get('/pessoas', PessoaController.findPessoasAtivas);
+router.get('/pessoas/ativas', PessoaController.findPessoasAtivas);
 router.get('/pessoas/all', PessoaController.findAllPessoas);
 router.get('/pessoas/:id', PessoaController.findUmaPessoa);
 router.post('/pessoas', PessoaController.createPessoa);

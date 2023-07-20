@@ -1,12 +1,15 @@
-const database = require('../models');
+// const database = require('../models');
 // não preciso adicionar o index porque ele já busca pelo arquivo index.js nessa pasta
 const Sequelize = require('sequelize');
+
+const { PessoaService } = require('../services');
+const pessoaService = new PessoaService();
 
 class PessoaController {
 
     static async findPessoasAtivas(req, res) {
         try {
-            const pessoas = await database.Pessoas.findAll();
+            const pessoas = await pessoaService.findActiveRegisters();
             return res.status(200).json(pessoas);
         } catch (error) {
             res.status(500).json(error.message);
@@ -15,7 +18,7 @@ class PessoaController {
 
     static async findAllPessoas(req, res) {
         try {
-            const pessoas = await database.Pessoas.scope('todos').findAll();
+            const pessoas = await pessoaService.findAllRegisters();
             return res.status(200).json(pessoas);
         } catch (error) {
             res.status(500).json(error.message);
@@ -198,13 +201,8 @@ class PessoaController {
         const { estudanteId } = req.params;
         console.log(estudanteId);
         try {
-            database.sequelize.transaction(async t => {
-                await database.Pessoas
-                    .update({ ativo: 0 }, { where: {id: Number(estudanteId)} }, { transaction: t });
-                await database.Matriculas
-                    .update({ status: 'cancelado' }, { where: {estudante_id: Number(estudanteId)} }, { transaction: t })
-                return res.status(200).json({message: `Estudante de id ${estudanteId} inativado e matriculas canceladas`});
-            })
+            await pessoaService.inactivatePerson(Number(estudanteId));
+            return res.status(200).json({message: `Estudante de id ${estudanteId} inativado e matriculas canceladas`});
         } catch (error) {
             res.status(500).json(error.message);
         }
