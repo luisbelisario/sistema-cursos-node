@@ -7,7 +7,7 @@ class Service {
     }
 
     async findAll() {
-        return database[this.modelName].findAll();
+        return database[this.modelName].findAll({where: { ...where }});
     }
 
     async findOne(id) {
